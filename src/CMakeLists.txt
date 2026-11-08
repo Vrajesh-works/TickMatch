@@ -1,0 +1,6 @@
+add_library(tickmatch
+    order_book.cpp)
+add_library(tickmatch::tickmatch ALIAS tickmatch)
+target_include_directories(tickmatch PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(tickmatch PUBLIC cxx_std_20)
+target_link_libraries(tickmatch PRIVATE tickmatch_warnings)
