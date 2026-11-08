@@ -45,3 +45,16 @@ if(TICKMATCH_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+if(TICKMATCH_BUILD_BENCHMARKS)
+    FetchContent_Declare(
+        googlebenchmark
+        URL https://github.com/google/benchmark/archive/refs/tags/v1.9.1.tar.gz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googlebenchmark)
+    add_subdirectory(bench)
+endif()
