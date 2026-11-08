@@ -26,6 +26,10 @@ endif()
 
 add_subdirectory(src)
 
+if(TICKMATCH_BUILD_APPS)
+    add_subdirectory(apps)
+endif()
+
 if(TICKMATCH_BUILD_TESTS OR TICKMATCH_BUILD_BENCHMARKS)
     include(FetchContent)
 endif()
