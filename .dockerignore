@@ -1,0 +1,8 @@
+.git
+.github
+build
+build-*
+out
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
