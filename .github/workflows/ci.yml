@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (clang-format, ruff)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install "ruff>=0.6"
+      - name: Check formatting and lint
+        run: |
+          clang-format --version
+          make lint
+
+  build-test:
+    name: Build and test (${{ matrix.compiler }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build
+      - name: Configure and build (Release)
+        run: make build
+      - name: Unit tests
+        run: ctest --test-dir build/release --output-on-failure -LE integration -j "$(nproc)"
+      - name: Integration tests (replay the committed LOBSTER sample)
+        run: ctest --test-dir build/release --output-on-failure -L integration
+      - name: Benchmark smoke run
+        run: build/release/bench/tickmatch_bench --benchmark_min_time=0.01s
+
+  sanitizers:
+    name: Sanitizers (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ASan + UBSan
+            target: asan
+          - name: TSan
+            target: tsan
+    env:
+      UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+      ASAN_OPTIONS: detect_leaks=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build
+      # Runner kernels use mmap_rnd_bits=32, which older TSan runtimes reject.
+      - name: Lower mmap ASLR entropy for TSan
+        if: matrix.target == 'tsan'
+        run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: Build and test
+        run: make ${{ matrix.target }}
+
+  python:
+    name: Python client
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install client
+        run: pip install -e "client[plot,dev]"
+      - name: pytest
+        run: make py-test
+
+  docker:
+    name: Docker image and compose demo
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (runs the full CTest suite inside)
+        run: docker compose build demo
+      - name: Run the demo end to end
+        env:
+          MESSAGES: "50000"
+        run: |
+          mkdir -p out
+          HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm demo
+          ls -l out
+          test -s out/summary_pipeline.json
+          test -s out/latency.png
+          python3 -c "import json; s = json.load(open('out/summary_pipeline.json')); assert s['invariants_ok'], s; print(s['latency_ns']['book'])"

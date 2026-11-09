@@ -1,0 +1,30 @@
+name: Bug report
+description: Wrong fills, a crossed book, a crash, or a tool that misbehaves
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Describe the wrong behaviour and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Commands, a minimal LOBSTER message snippet, or a failing test.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Compiler and version, OS, build type (Release, ASan, TSan), commit.
+      placeholder: "g++ 13.2, Ubuntu 24.04, Release, abc1234"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output or logs
+      render: text

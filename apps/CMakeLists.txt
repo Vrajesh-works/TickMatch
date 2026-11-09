@@ -1,0 +1,3 @@
+add_executable(tickmatch_replay tickmatch_replay.cpp)
+target_link_libraries(tickmatch_replay PRIVATE tickmatch::tickmatch tickmatch_warnings)
+install(TARGETS tickmatch_replay RUNTIME DESTINATION bin)

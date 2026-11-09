@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a new order type, data source, metric or tool
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can you not do today, and who needs it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The behaviour you want, including order semantics if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: perf
+    attributes:
+      label: Hot path impact
+      description: Does this touch matching, the queue or the book layout? How would you measure it?
