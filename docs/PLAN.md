@@ -63,7 +63,7 @@ Why this layout:
 
 1. Docs: this plan and `PRODUCT.md`.
 2. Build skeleton: CMake with FetchContent for GoogleTest and Google
-   Benchmark, presets for release, debug sanitizers and TSan.
+   Benchmark, plus Makefile targets for release, ASan/UBSan and TSan builds.
 3. Core library: types, order pool, price levels, matching, cancel, reduce.
 4. Unit tests for every order path, then the randomized differential test
    against a `std::map`-of-`std::deque` reference book with invariant checks.
